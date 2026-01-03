@@ -1,9 +1,12 @@
+import debounce from 'lodash.debounce';
+import PNotify from '@pnotify/core';
+
 const searchBox = document.getElementById("search-box");
-const result = document.getElementById("result");
+const result = document.getElementById("results");
 
 searchBox.addEventListener(
   "input",
-  _.debounce(onSearch, 500)
+  debounce(onSearch, 500)
 );
 
 function onSearch(e) {
