@@ -1,86 +1,76 @@
+
 import debounce from 'lodash.debounce';
-import PNotify from '@pnotify/core';
+import { alert, defaults } from '@pnotify/core';
+import '@pnotify/core/dist/PNotify.css';
+import '@pnotify/core/dist/BrightTheme.css';
 
-const searchBox = document.getElementById("search-box");
-const result = document.getElementById("results");
+import fetchCountries from './js/fetchCountries';
+import refs from './js/refs';
+import { countryListTemplate, countryCardTemplate } from './js/templates';
 
-searchBox.addEventListener(
-  "input",
-  debounce(onSearch, 500)
-);
+defaults.delay = 3000;
+defaults.closer = true;
+defaults.sticker = false;
 
-function onSearch(e) {
-  const query = e.target.value.trim();
+refs.searchBox.addEventListener('input', debounce(onSearch, 500));
 
-  if (!query) {
-    result.innerHTML = "";
+function onSearch(event) {
+  const searchQuery = event.target.value.trim();
+
+  clearCountryInfo();
+
+  if (!searchQuery) {
     return;
   }
 
-  fetch(`https://restcountries.com/v2/name/${query}`)
-    .then(res => {
-      if (!res.ok) throw new Error();
-      return res.json();
-    })
-    .then(handleResults)
-    .catch(() => {
-      result.innerHTML = "";
-      PNotify.alert({
-        text: "Country not found",
-        type: "error",
-      });
-    });
+  fetchCountries(searchQuery)
+    .then(handleSearchResults)
+    .catch(handleSearchError);
 }
 
-function handleResults(countries) {
-  result.innerHTML = "";
-
+function handleSearchResults(countries) {
   if (countries.length > 10) {
-    PNotify.alert({
-      text: "Too many matches found. Please enter a more specific query!",
-      type: "info",
-    });
+    showTooManyMatchesNotification();
     return;
   }
 
-  // ✅ ONE country → detailed card
+  if (countries.length >= 2 && countries.length <= 10) {
+    renderCountryList(countries);
+    return;
+  }
+
   if (countries.length === 1) {
-    result.innerHTML = countryCardTemplate(countries[0]);
-    return;
+    renderCountryCard(countries[0]);
   }
-
-  // ✅ MORE THAN ONE country → ONLY names list
-  result.innerHTML = countryNamesListTemplate(countries);
 }
 
-function countryNamesListTemplate(countries) {
-  return `
-    <ul class="country-list">
-      ${countries.map(c => `<li>${c.name}</li>`).join("")}
-    </ul>
-  `;
+function handleSearchError() {
+  showNotFoundNotification();
 }
 
-function countryCardTemplate(country) {
-  const languages = country.languages
-    .map(lang => `<li>${lang.name}</li>`)
-    .join("");
+function renderCountryList(countries) {
+  const markup = `<ul class="country-list">${countryListTemplate(countries)}</ul>`;
+  refs.countryInfo.innerHTML = markup;
+}
 
-  return `
-    <div class="country-card">
-      <div>
-        <h2>${country.name}</h2>
-        <p><strong>Capital:</strong> ${country.capital}</p>
-        <p><strong>Population:</strong> ${country.population}</p>
-        <p><strong>Languages:</strong></p>
-        <ul>${languages}</ul>
-      </div>
+function renderCountryCard(country) {
+  refs.countryInfo.innerHTML = countryCardTemplate(country);
+}
 
-      <img
-        class="flag"
-        src="${country.flag}"
-        alt="Flag of ${country.name}"
-      />
-    </div>
-  `;
+function clearCountryInfo() {
+  refs.countryInfo.innerHTML = '';
+}
+
+function showTooManyMatchesNotification() {
+  alert({
+    text: 'Знайдено занадто багато країн. Будь ласка, уточніть запит!',
+    type: 'notice',
+  });
+}
+
+function showNotFoundNotification() {
+  alert({
+    text: 'Країну не знайдено. Спробуйте інший запит.',
+    type: 'error',
+  });
 }
