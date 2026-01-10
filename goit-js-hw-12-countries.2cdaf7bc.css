@@ -1,0 +1,36 @@
+body {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+input {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 10px;
+  font-size: 18px;
+}
+
+.country-list {
+  padding: 0;
+  list-style: none;
+}
+
+.country-card {
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+  display: flex;
+}
+
+.country-card h2 {
+  font-size: 36px;
+}
+
+.country-card p {
+  font-size: 20px;
+}
+
+.flag {
+  width: 300px;
+}
+/*# sourceMappingURL=goit-js-hw-12-countries.2cdaf7bc.css.map */
